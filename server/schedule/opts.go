@@ -64,4 +64,5 @@ const (
 	// RejectLeader is the label property type that suggests a store should not
 	// have any region leaders.
 	RejectLeader = "reject-leader"
+	RejectQuorum = "reject-quorum"
 )

@@ -75,6 +75,11 @@ func (h *schedulerHandler) Post(w http.ResponseWriter, r *http.Request) {
 			h.r.JSON(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+	case "quorum-scheduler":
+		if err := h.AddQuorumScheduler(); err != nil {
+			h.r.JSON(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 	case "scatter-range":
 		var args []string
 		startKey, ok := input["start_key"].(string)

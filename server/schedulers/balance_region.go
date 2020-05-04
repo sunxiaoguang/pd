@@ -180,9 +180,13 @@ func (s *balanceRegionScheduler) transferPeer(cluster schedule.Cluster, region *
 	stores := cluster.GetRegionStores(region)
 	source := cluster.GetStore(oldPeer.GetStoreId())
 	scoreGuard := schedule.NewDistinctScoreFilter(cluster.GetLocationLabels(), stores, source)
+	filters := []schedule.Filter{scoreGuard}
+	if !isRejectQuorumStore(cluster, source) && !canScheduleToRejectQuorumStore(cluster, region) {
+		filters = append(filters, schedule.NewRejectQuorumFilter())
+	}
 
 	checker := schedule.NewReplicaChecker(cluster, nil)
-	storeID, _ := checker.SelectBestReplacementStore(region, oldPeer, scoreGuard)
+	storeID, _ := checker.SelectBestReplacementStore(region, oldPeer, filters...)
 	if storeID == 0 {
 		schedulerCounter.WithLabelValues(s.GetName(), "no_replacement").Inc()
 		return nil
@@ -233,6 +237,10 @@ func (s *balanceRegionScheduler) hasPotentialTarget(cluster schedule.Cluster, re
 	filters := []schedule.Filter{
 		schedule.NewExcludedFilter(nil, region.GetStoreIds()),
 		schedule.NewDistinctScoreFilter(cluster.GetLocationLabels(), cluster.GetRegionStores(region), source),
+	}
+
+	if !isRejectQuorumStore(cluster, source) && !canScheduleToRejectQuorumStore(cluster, region) {
+		filters = append(filters, schedule.NewRejectQuorumFilter())
 	}
 
 	for _, store := range cluster.GetStores() {

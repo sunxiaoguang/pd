@@ -79,6 +79,7 @@ func NewAddSchedulerCommand() *cobra.Command {
 	c.AddCommand(NewRandomMergeSchedulerCommand())
 	c.AddCommand(NewBalanceAdjacentRegionSchedulerCommand())
 	c.AddCommand(NewLabelSchedulerCommand())
+	c.AddCommand(NewQuorumSchedulerCommand())
 	return c
 }
 
@@ -214,6 +215,16 @@ func NewRandomMergeSchedulerCommand() *cobra.Command {
 func NewLabelSchedulerCommand() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "label-scheduler",
+		Short: "add a scheduler to schedule regions according to the label",
+		Run:   addSchedulerCommandFunc,
+	}
+	return c
+}
+
+// NewQuorumSchedulerCommand returns a command to add a label-scheduler.
+func NewQuorumSchedulerCommand() *cobra.Command {
+	c := &cobra.Command{
+		Use:   "quorum-scheduler",
 		Short: "add a scheduler to schedule regions according to the label",
 		Run:   addSchedulerCommandFunc,
 	}

@@ -368,6 +368,26 @@ func (f rejectLeaderFilter) FilterTarget(opt Options, store *core.StoreInfo) boo
 	return opt.CheckLabelProperty(RejectLeader, store.GetLabels())
 }
 
+type rejectQuorumFilter struct{}
+
+// NewRejectQuorumFilter creates a Filter that filters stores that marked as
+// rejectQuorum from being the target of leader transfer.
+func NewRejectQuorumFilter() Filter {
+	return rejectQuorumFilter{}
+}
+
+func (f rejectQuorumFilter) Type() string {
+	return "reject-quorum-filter"
+}
+
+func (f rejectQuorumFilter) FilterSource(opt Options, store *core.StoreInfo) bool {
+	return false
+}
+
+func (f rejectQuorumFilter) FilterTarget(opt Options, store *core.StoreInfo) bool {
+	return opt.CheckLabelProperty(RejectQuorum, store.GetLabels())
+}
+
 // StoreStateFilter is used to determine whether a store can be selected as the
 // source or target of the schedule based on the store's state.
 type StoreStateFilter struct {

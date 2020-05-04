@@ -223,6 +223,11 @@ func (h *Handler) AddLabelScheduler() error {
 	return h.AddScheduler("label")
 }
 
+// AddQuorumScheduler adds a label-scheduler.
+func (h *Handler) AddQuorumScheduler() error {
+	return h.AddScheduler("quorum")
+}
+
 // AddScatterRangeScheduler adds a balance-range-leader-scheduler
 func (h *Handler) AddScatterRangeScheduler(args ...string) error {
 	return h.AddScheduler("scatter-range", args...)

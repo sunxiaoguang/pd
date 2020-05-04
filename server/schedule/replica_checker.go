@@ -263,7 +263,7 @@ func (r *ReplicaChecker) fixPeer(region *core.RegionInfo, peer *metapb.Peer, sta
 		return op
 	}
 
-	storeID, _ := r.SelectBestReplacementStore(region, peer, NewStorageThresholdFilter())
+	storeID, _ := r.SelectBestReplacementStore(region, peer, NewStorageThresholdFilter(), NewRejectQuorumFilter())
 	if storeID == 0 {
 		log.Debug("no best store to add replica", zap.Uint64("region-id", region.GetID()))
 		return nil

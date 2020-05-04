@@ -53,6 +53,38 @@ func isRegionUnhealthy(region *core.RegionInfo) bool {
 	return len(region.GetDownPeers()) != 0 || len(region.GetLearners()) != 0
 }
 
+func isRejectQuorumStore(cluster schedule.Cluster, store *core.StoreInfo) bool {
+	return cluster.CheckLabelProperty(schedule.RejectQuorum, store.GetLabels())
+}
+
+func numberOfRejectQuorumStores(cluster schedule.Cluster, region *core.RegionInfo) int {
+	evictReplicas := 0
+	for _, store := range cluster.GetRegionStores(region) {
+		if isRejectQuorumStore(cluster, store) {
+			evictReplicas++
+		}
+	}
+	return evictReplicas
+}
+
+func canScheduleToRejectQuorumStore(cluster schedule.Cluster, region *core.RegionInfo) bool {
+	return numberOfRejectQuorumStores(cluster, region) < cluster.GetMaxReplicas()/2
+}
+
+func rejectQuorumStoreExceeded(cluster schedule.Cluster, region *core.RegionInfo) bool {
+	return numberOfRejectQuorumStores(cluster, region) >= 1+(cluster.GetMaxReplicas()/2)
+}
+
+func rejectQuorumStores(cluster schedule.Cluster) map[uint64]struct{} {
+	rejectQuorumStores := make(map[uint64]struct{})
+	for _, s := range cluster.GetStores() {
+		if cluster.CheckLabelProperty(schedule.RejectQuorum, s.GetLabels()) {
+			rejectQuorumStores[s.GetID()] = struct{}{}
+		}
+	}
+	return rejectQuorumStores
+}
+
 func shouldBalance(cluster schedule.Cluster, source, target *core.StoreInfo, region *core.RegionInfo, kind core.ResourceKind, opInfluence schedule.OpInfluence) bool {
 	// The reason we use max(regionSize, averageRegionSize) to check is:
 	// 1. prevent moving small regions between stores with close scores, leading to unnecessary balance.
