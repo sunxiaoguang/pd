@@ -236,6 +236,24 @@ func (s *Server) PutStore(ctx context.Context, request *pdpb.PutStoreRequest) (*
 		}, nil
 	}
 
+	version, err := rc.LoadBootstrapStoreVersion()
+	if err != nil {
+		return nil, status.Errorf(codes.Unknown, err.Error())
+	}
+	bootstrapStoreVersion, err := versioninfo.ParseVersion(version)
+	if err != nil {
+		return nil, status.Errorf(codes.Unknown, err.Error())
+	}
+	storeVersion, err := versioninfo.ParseVersion(store.GetVersion())
+	if err != nil {
+		return nil, status.Errorf(codes.Unknown, err.Error())
+	}
+
+	if storeVersion.LessThan(*bootstrapStoreVersion) {
+		return nil, status.Errorf(codes.FailedPrecondition,
+			fmt.Sprintf("store version %s is older than cluster bootstrap store version %s", store.GetVersion(), version))
+	}
+
 	// NOTE: can be removed when placement rules feature is enabled by default.
 	if !s.GetConfig().Replication.EnablePlacementRules && core.IsTiFlashStore(store) {
 		return nil, status.Errorf(codes.FailedPrecondition, "placement rules is disabled")
@@ -245,12 +263,18 @@ func (s *Server) PutStore(ctx context.Context, request *pdpb.PutStoreRequest) (*
 		return nil, status.Errorf(codes.Unknown, err.Error())
 	}
 
+	bootstrapFeature, err := rc.LoadBootstrapFeature()
+	if err != nil {
+		return nil, status.Errorf(codes.Unknown, err.Error())
+	}
+
 	log.Info("put store ok", zap.Stringer("store", store))
 	CheckPDVersion(s.persistOptions)
 
 	return &pdpb.PutStoreResponse{
 		Header:            s.header(),
 		ReplicationStatus: rc.GetReplicationMode().GetReplicationStatus(),
+		Feature:           bootstrapFeature,
 	}, nil
 }
 

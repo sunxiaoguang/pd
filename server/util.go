@@ -134,8 +134,20 @@ func makeRaftClusterStatusPrefix(clusterRootPath string) string {
 	return path.Join(clusterRootPath, "status")
 }
 
+func makeBootstrapKey(clusterRootPath, key string) string {
+	return path.Join(makeRaftClusterStatusPrefix(clusterRootPath), key)
+}
+
 func makeBootstrapTimeKey(clusterRootPath string) string {
-	return path.Join(makeRaftClusterStatusPrefix(clusterRootPath), "raft_bootstrap_time")
+	return makeBootstrapKey(clusterRootPath, "raft_bootstrap_time")
+}
+
+func makeBootstrapFeatureKey(clusterRootPath string) string {
+	return makeBootstrapKey(clusterRootPath, "raft_bootstrap_feature")
+}
+
+func makeBootstrapStoreVersionKey(clusterRootPath string) string {
+	return makeBootstrapKey(clusterRootPath, "raft_bootstrap_store_version")
 }
 
 func checkBootstrapRequest(clusterID uint64, req *pdpb.BootstrapRequest) error {

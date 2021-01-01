@@ -579,6 +579,17 @@ func (s *Server) bootstrapCluster(req *pdpb.BootstrapRequest) (*pdpb.BootstrapRe
 	timeData := typeutil.Uint64ToBytes(uint64(nano))
 	ops = append(ops, clientv3.OpPut(bootstrapKey, string(timeData)))
 
+	// Set bootstrap feature
+	feature := req.GetFeature()
+	if feature != nil {
+		bootstrapKey = makeBootstrapFeatureKey(clusterRootPath)
+		featureValue, err := feature.Marshal()
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		ops = append(ops, clientv3.OpPut(bootstrapKey, string(featureValue)))
+	}
+
 	// Set store meta
 	storeMeta := req.GetStore()
 	storePath := makeStoreKey(clusterRootPath, storeMeta.GetId())
@@ -587,6 +598,10 @@ func (s *Server) bootstrapCluster(req *pdpb.BootstrapRequest) (*pdpb.BootstrapRe
 		return nil, errors.WithStack(err)
 	}
 	ops = append(ops, clientv3.OpPut(storePath, string(storeValue)))
+
+	// Set bootstrap store version
+	bootstrapKey = makeBootstrapStoreVersionKey(clusterRootPath)
+	ops = append(ops, clientv3.OpPut(bootstrapKey, storeMeta.GetVersion()))
 
 	regionValue, err := req.GetRegion().Marshal()
 	if err != nil {

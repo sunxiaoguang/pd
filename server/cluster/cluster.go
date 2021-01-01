@@ -122,9 +122,11 @@ type RaftCluster struct {
 
 // Status saves some state information.
 type Status struct {
-	RaftBootstrapTime time.Time `json:"raft_bootstrap_time,omitempty"`
-	IsInitialized     bool      `json:"is_initialized"`
-	ReplicationStatus string    `json:"replication_status"`
+	RaftBootstrapTime     time.Time              `json:"raft_bootstrap_time,omitempty"`
+	IsInitialized         bool                   `json:"is_initialized"`
+	ReplicationStatus     string                 `json:"replication_status"`
+	BootstrapFeature      *pdpb.BootstrapFeature `json:"raft_bootstrap_feature,omitempty"`
+	BootstrapStoreVersion string                 `json:"raft_bootstrap_store_version,omitempty"`
 }
 
 // NewRaftCluster create a new cluster.
@@ -154,10 +156,20 @@ func (c *RaftCluster) LoadClusterStatus() (*Status, error) {
 	if c.replicationMode != nil {
 		replicationStatus = c.replicationMode.GetReplicationStatus().String()
 	}
+	bootstrapFeature, err := c.LoadBootstrapFeature()
+	if err != nil {
+		return nil, err
+	}
+	bootstrapStoreVersion, err := c.LoadBootstrapStoreVersion()
+	if err != nil {
+		return nil, err
+	}
 	return &Status{
-		RaftBootstrapTime: bootstrapTime,
-		IsInitialized:     isInitialized,
-		ReplicationStatus: replicationStatus,
+		RaftBootstrapTime:     bootstrapTime,
+		IsInitialized:         isInitialized,
+		ReplicationStatus:     replicationStatus,
+		BootstrapFeature:      bootstrapFeature,
+		BootstrapStoreVersion: bootstrapStoreVersion,
 	}, nil
 }
 
@@ -191,6 +203,29 @@ func (c *RaftCluster) loadBootstrapTime() (time.Time, error) {
 		return t, nil
 	}
 	return typeutil.ParseTimestamp([]byte(data))
+}
+
+// LoadBootstrapFeature loads the saved bootstrap feature from etcd. It returns nil
+// when there is error or the cluster is not bootstrapped with feature.
+func (c *RaftCluster) LoadBootstrapFeature() (*pdpb.BootstrapFeature, error) {
+	data, err := c.storage.Load(c.storage.ClusterStatePath("raft_bootstrap_feature"))
+	if err != nil {
+		return nil, err
+	}
+	if data == "" {
+		return nil, nil
+	}
+	feature := &pdpb.BootstrapFeature{}
+	if err = feature.Unmarshal([]byte(data)); err != nil {
+		return nil, err
+	}
+	return feature, nil
+}
+
+// LoadBootstrapStoreVersion loads the saved bootstrap store version from etcd. It returns empty
+// string when there is error or the cluster is bootstrapped without store version feature.
+func (c *RaftCluster) LoadBootstrapStoreVersion() (string, error) {
+	return c.storage.Load(c.storage.ClusterStatePath("raft_bootstrap_store_version"))
 }
 
 // InitCluster initializes the raft cluster.
