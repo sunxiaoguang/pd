@@ -190,9 +190,8 @@ func DefaultRequestUnitConfig() RequestUnitConfig {
 		zap.Float64("WriteBaseCost", defaultWriteBaseCost),
 		zap.Float64("WritePerBatchBaseCost", defaultWritePerBatchBaseCost),
 		zap.Float64("WriteCostPerByte", defaultWriteCostPerByte),
-		zap.Float64("CPUMsCost", defaultCPUMsCost)
+		zap.Float64("CPUMsCost", defaultCPUMsCost),
 	)
-)
 	return RequestUnitConfig{
 		ReadBaseCost:          defaultReadBaseCost,
 		ReadPerBatchBaseCost:  defaultReadPerBatchBaseCost,
