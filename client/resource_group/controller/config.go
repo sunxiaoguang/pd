@@ -73,7 +73,7 @@ const (
 	// 1 RU = 64 KiB read bytes
 	defaultReadCostPerByte = 1. / (64 * 1024)
 	// 1 RU = 1 KiB written bytes
-	defaultWriteCostPerByte = 1. / 4096
+	defaultWriteCostPerByte = 1. / 8192
 	// 1 RU = 3 millisecond CPU time
 	defaultCPUMsCost = 1. / 3
 
