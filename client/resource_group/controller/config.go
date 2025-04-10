@@ -18,8 +18,6 @@ import (
 	"time"
 
 	rmpb "github.com/pingcap/kvproto/pkg/resource_manager"
-	"github.com/pingcap/log"
-	"go.uber.org/zap"
 )
 
 var (
@@ -69,13 +67,13 @@ const (
 	// 1 RU = 2 storage read batch requests
 	defaultReadPerBatchBaseCost = 1. / 2 // 0.5
 	// 1 RU = 1 storage write request
-	defaultWriteBaseCost = 1
+	defaultWriteBaseCost = 0.5
 	// 1 RU = 1 storage write batch request
-	defaultWritePerBatchBaseCost = 1
+	defaultWritePerBatchBaseCost = 0.5
 	// 1 RU = 64 KiB read bytes
 	defaultReadCostPerByte = 1. / (64 * 1024)
 	// 1 RU = 1 KiB written bytes
-	defaultWriteCostPerByte = 1. / 8192
+	defaultWriteCostPerByte = 1. / 2048
 	// 1 RU = 3 millisecond CPU time
 	defaultCPUMsCost = 1. / 3
 
@@ -183,15 +181,6 @@ type RequestUnitConfig struct {
 
 // DefaultRequestUnitConfig returns the default request unit configuration.
 func DefaultRequestUnitConfig() RequestUnitConfig {
-	log.Info("Request Unit Config",
-		zap.Float64("ReadBaseCost", defaultReadBaseCost),
-		zap.Float64("ReadPerBatchBaseCost", defaultReadPerBatchBaseCost),
-		zap.Float64("ReadCostPerByte", defaultReadCostPerByte),
-		zap.Float64("WriteBaseCost", defaultWriteBaseCost),
-		zap.Float64("WritePerBatchBaseCost", defaultWritePerBatchBaseCost),
-		zap.Float64("WriteCostPerByte", defaultWriteCostPerByte),
-		zap.Float64("CPUMsCost", defaultCPUMsCost),
-	)
 	return RequestUnitConfig{
 		ReadBaseCost:          defaultReadBaseCost,
 		ReadPerBatchBaseCost:  defaultReadPerBatchBaseCost,
